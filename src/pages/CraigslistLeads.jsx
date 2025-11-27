@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,25 @@ import { Badge } from "@/components/ui/badge";
 // IMPORTANT: This URL points to your deployed 'cl-everywhere' API service.
 // You can also manage this in your Base44 environment variables.
 const API_BASE_URL = "https://apex-deal-flow.onrender.com";
+
+// All Craigslist city subdomains for nationwide scraping
+const ALL_CRAIGSLIST_CITIES = [
+  "atlanta", "austin", "baltimore", "boston", "charlotte", "chicago", "cincinnati", "cleveland", 
+  "columbus", "dallas", "denver", "detroit", "houston", "indianapolis", "jacksonville", "kansascity",
+  "lasvegas", "losangeles", "louisville", "memphis", "miami", "milwaukee", "minneapolis", "nashville",
+  "neworleans", "newyork", "oklahomacity", "orlando", "philadelphia", "phoenix", "pittsburgh", "portland",
+  "raleigh", "richmond", "sacramento", "saltlakecity", "sanantonio", "sandiego", "seattle", "sfbay",
+  "stlouis", "tampa", "tucson", "washingtondc", "albuquerque", "anchorage", "bakersfield", "birmingham",
+  "boise", "buffalo", "charleston", "coloradosprings", "dayton", "elpaso", "fresno", "greensboro",
+  "hartford", "honolulu", "knoxville", "lexington", "littlerock", "madison", "mcallen", "modesto",
+  "newjersey", "norfolk", "omaha", "providence", "reno", "rochester", "spokane", "springfield",
+  "stockton", "syracuse", "toledo", "tulsa", "wichita", "wilmington", "worcester", "youngstown"
+];
+
+// Generate all Craigslist real estate URLs for nationwide scraping
+const generateAllCraigslistUrls = (category = "rea") => {
+  return ALL_CRAIGSLIST_CITIES.map(city => `https://${city}.craigslist.org/search/${category}`);
+};
 
 export default function CraigslistLeads() {
   const [recipes, setRecipes] = useState([]);

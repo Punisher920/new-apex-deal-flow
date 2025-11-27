@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client"; // Fixed import
 import RecipeManager from "../components/craigslist/RecipeManager";
 import ListingViewer from "../components/craigslist/ListingViewer";
 import CraigslistSetupGuide from "../components/craigslist/CraigslistSetupGuide";
-import { Plus, AlertTriangle, Sparkles, Bot, RefreshCw } from "lucide-react";
+import { Plus, AlertTriangle, Sparkles, Bot, RefreshCw, Globe } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 

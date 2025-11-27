@@ -42,6 +42,7 @@ export default function CraigslistLeads() {
   const [isAddingRecipe, setIsAddingRecipe] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false); // New state
   const [showSetupGuide, setShowSetupGuide] = useState(false); // New state
+  const [isCreatingNationwide, setIsCreatingNationwide] = useState(false);
   const { toast } = useToast();
 
   const fetchRecipes = useCallback(async () => {

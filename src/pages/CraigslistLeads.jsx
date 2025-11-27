@@ -132,6 +132,39 @@ export default function CraigslistLeads() {
     fetchRecipes();
   };
 
+  const handleCreateNationwideRecipe = async () => {
+    setIsCreatingNationwide(true);
+    try {
+      const allUrls = generateAllCraigslistUrls("rea");
+      
+      const response = await fetch(`${API_BASE_URL}/recipes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: "🇺🇸 All USA - Real Estate",
+          urls: allUrls,
+          schedule: "0 */6 * * *" // Every 6 hours
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to create nationwide recipe');
+      }
+
+      toast({ 
+        title: "Nationwide Recipe Created!", 
+        description: `Scraping ${allUrls.length} Craigslist cities for real estate listings.`,
+        variant: "success" 
+      });
+      fetchRecipes();
+    } catch (e) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsCreatingNationwide(false);
+    }
+  };
+
   const handleAIAnalysis = async () => {
     if (listings.length === 0) {
       toast({ title: "No Listings", description: "Please load listings first.", variant: "destructive" });

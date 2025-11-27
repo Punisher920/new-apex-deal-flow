@@ -268,6 +268,17 @@ Report back with:
                 <><Sparkles className="w-4 h-4 mr-2" />AI Analyze & Create</>
               )}
             </Button>
+            <Button 
+              onClick={handleCreateNationwideRecipe} 
+              disabled={isCreatingNationwide}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              {isCreatingNationwide ? (
+                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Creating...</>
+              ) : (
+                <><Globe className="w-4 h-4 mr-2" />Scrape All USA</>
+              )}
+            </Button>
             <Button onClick={() => setIsAddingRecipe(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
               Add Search Recipe

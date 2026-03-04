@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: apex-deal-flow-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: NODE_ENV
+        value: production

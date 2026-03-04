@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AddBuyerForm from "../components/buyers/AddBuyerForm";
+import FollowUpSequencer from "@/components/leads/FollowUpSequencer";
 
 export default function BuyerCRM() {
   const [buyers, setBuyers] = useState([]);

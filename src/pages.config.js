@@ -15,6 +15,8 @@ import CraigslistLeads from './pages/CraigslistLeads';
 import AgentChat from './pages/AgentChat';
 import AgentDiagnostics from './pages/AgentDiagnostics';
 import MarketAnalysis from './pages/MarketAnalysis';
+import DealFlowDashboard from './pages/DealFlowDashboard';
+import LeadSearch from './pages/LeadSearch';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +38,8 @@ export const PAGES = {
     "AgentChat": AgentChat,
     "AgentDiagnostics": AgentDiagnostics,
     "MarketAnalysis": MarketAnalysis,
+        "DealFlowDashboard": DealFlowDashboard,
+    "LeadSearch": LeadSearch,
 }
 
 export const pagesConfig = {

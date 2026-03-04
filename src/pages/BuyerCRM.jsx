@@ -202,6 +202,11 @@ Execute this now and report back with:
           </div>
         </div>
 
+        {/* Buyer Follow-Up Sequencer */}
+        <div className="mb-8">
+          <FollowUpSequencer type="buyer" onComplete={loadData} />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <Card className="glass-effect border-slate-200/50 shadow-xl">

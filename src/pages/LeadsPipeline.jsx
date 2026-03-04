@@ -179,6 +179,12 @@ export default function LeadsPipeline() {
           <p className="text-slate-600 text-lg">Motivated seller prospects sorted by likelihood to sell</p>
         </div>
 
+        {/* AI Tools Row */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <AILeadSourcing onLeadsCreated={loadData} />
+          <FollowUpSequencer type="lead" onComplete={loadData} />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <Card className="glass-effect border-slate-200/50 shadow-xl">

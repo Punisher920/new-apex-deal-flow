@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Property, Owner, Score, OutreachLog } from "@/entities/all";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +22,8 @@ import {
   Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import AILeadSourcing from "@/components/leads/AILeadSourcing";
+import FollowUpSequencer from "@/components/leads/FollowUpSequencer";
 
 const DealStatusBadge = ({ status }) => {
   const statusConfig = {

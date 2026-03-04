@@ -72,6 +72,11 @@ const navigationItems = [
     icon: Bot,
   },
   {
+    title: "Analytics",
+    url: createPageUrl("Analytics"),
+    icon: BarChart3,
+  },
+  {
     title: "Agent Diagnostics",
     url: createPageUrl("AgentDiagnostics"),
     icon: Settings,

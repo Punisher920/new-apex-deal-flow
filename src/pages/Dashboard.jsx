@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Property, Alert } from "@/entities/all";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,14 +8,11 @@ import { Input } from "@/components/ui/input";
 import { 
   TrendingUp, 
   MapPin, 
-  DollarSign, 
-  Home,
   Search,
   Filter,
-  Star,
-  AlertTriangle,
-  Clock,
-  BarChart3
+  Sparkles,
+  BarChart3,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,12 +21,17 @@ import PropertyMap from "../components/dashboard/PropertyMap";
 import DealCard from "../components/dashboard/DealCard";
 import FilterPanel from "../components/dashboard/FilterPanel";
 import AlertsPanel from "../components/dashboard/AlertsPanel";
+import DealFlowMetrics from "../components/dashboard/DealFlowMetrics";
+import AgentHub from "../components/dashboard/AgentHub";
 
 export default function Dashboard() {
   const [properties, setProperties] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [isNLSearching, setIsNLSearching] = useState(false);
+  const [nlSearchResult, setNLSearchResult] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     minDealScore: 70,
@@ -57,9 +60,48 @@ export default function Dashboard() {
     setIsLoading(false);
   };
 
+  const handleSearch = async () => {
+    const query = searchInput.trim();
+    setSearchQuery(query);
+    if (!query) { setNLSearchResult(null); return; }
+
+    // Natural language: if it looks like a plain NL query (not an address), use AI to interpret
+    const isNL = /find|show|list|deals?|properties|in\s|with\s|under\s|\$|profit|score|bedrooms?/i.test(query);
+    if (isNL) {
+      setIsNLSearching(true);
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: `You are a real estate deal filter assistant. Given this natural language query: "${query}"
+Extract structured filter criteria from it as JSON. Return only valid JSON with these optional fields:
+{ "city": string, "minScore": number, "maxPrice": number, "minProfit": number, "propertyType": string, "summary": string }
+Example: "find flips in Tampa under 300k" -> { "city": "Tampa", "maxPrice": 300000, "summary": "Flips in Tampa under $300K" }`,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              city: { type: "string" },
+              minScore: { type: "number" },
+              maxPrice: { type: "number" },
+              minProfit: { type: "number" },
+              propertyType: { type: "string" },
+              summary: { type: "string" }
+            }
+          }
+        });
+        setNLSearchResult(result);
+        if (result.maxPrice) setFilters(f => ({ ...f, maxPrice: result.maxPrice }));
+        if (result.minScore) setFilters(f => ({ ...f, minDealScore: result.minScore }));
+        if (result.minProfit) setFilters(f => ({ ...f, minProfit: result.minProfit }));
+      } catch { /* ignore */ }
+      setIsNLSearching(false);
+    }
+  };
+
   const filteredProperties = properties.filter(property => {
-    const matchesSearch = property.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         property.city?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      property.address?.toLowerCase().includes(q) ||
+      property.city?.toLowerCase().includes(q) ||
+      (nlSearchResult?.city && property.city?.toLowerCase().includes(nlSearchResult.city.toLowerCase()));
     const matchesScore = property.deal_score >= filters.minDealScore;
     const matchesPrice = property.list_price <= filters.maxPrice;
     const matchesProfit = property.projected_profit >= filters.minProfit;
@@ -87,14 +129,23 @@ export default function Dashboard() {
             </div>
             
             <div className="flex gap-3 w-full lg:w-auto">
-              <div className="relative flex-1 lg:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <div className="relative flex-1 lg:w-96">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
-                  placeholder="Search properties, cities..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/80 backdrop-blur-sm border-slate-200/50"
+                  placeholder='Search or ask: "Find flips in Tampa under $300K"'
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 pr-24 bg-white/80 backdrop-blur-sm border-slate-200/50"
                 />
+                <Button
+                  size="sm"
+                  onClick={handleSearch}
+                  disabled={isNLSearching}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 text-xs gold-gradient text-white"
+                >
+                  {isNLSearching ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Sparkles className="w-3 h-3 mr-1" />Search</>}
+                </Button>
               </div>
               <Button
                 variant="outline"
@@ -107,6 +158,23 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* NL Search Result Banner */}
+          {nlSearchResult?.summary && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span className="text-sm text-amber-800 font-medium">AI Search: {nlSearchResult.summary}</span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-6 text-xs text-amber-600" onClick={() => { setNLSearchResult(null); setSearchQuery(""); setSearchInput(""); setFilters({ minDealScore: 70, maxPrice: 500000, minProfit: 10000, propertyType: "all", location: "all" }); }}>
+                Clear
+              </Button>
+            </motion.div>
+          )}
+
           {/* Stats Overview */}
           <StatsOverview 
             properties={filteredProperties}
@@ -114,6 +182,11 @@ export default function Dashboard() {
             totalProfit={totalProfit}
             isLoading={isLoading}
           />
+
+          {/* Live Deal Flow Metrics */}
+          <div className="mt-8">
+            <DealFlowMetrics searchQuery={searchQuery} />
+          </div>
 
           <div className="grid lg:grid-cols-12 gap-8 mt-8">
             {/* Main Content */}
@@ -187,6 +260,9 @@ export default function Dashboard() {
 
               {/* Alerts */}
               <AlertsPanel alerts={alerts} onRefresh={loadData} />
+
+              {/* Agent Hub */}
+              <AgentHub />
 
               {/* Market Insights */}
               <Card className="glass-effect border-slate-200/50 shadow-xl">

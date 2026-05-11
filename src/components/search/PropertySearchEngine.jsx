@@ -70,30 +70,7 @@ export default function PropertySearchEngine() {
 
     try {
       const searchScope = location === "Nationwide USA" ? "across the United States (spread across multiple states and regions)" : `in ${location}`;
-      const searchQuery = `Search Zillow, Realtor.com, Redfin, and real estate listing sites to find 10-15 REAL properties currently for sale ${searchScope}. 
-
-REQUIREMENTS:
-- Price range: $${searchParams.minPrice.toLocaleString()} - $${searchParams.maxPrice.toLocaleString()}
-- Bedrooms: ${searchParams.minBeds}-${searchParams.maxBeds}
-- Property type: ${searchParams.propertyType}
-- Focus on: distressed properties, foreclosures, motivated sellers, fixer-uppers, and wholesale opportunities
-${location === "Nationwide USA" ? "- Include properties from diverse markets: Southeast, Midwest, Southwest, Northeast, and South" : ""}
-
-For each property found, provide:
-1. Full street address (real addresses from current listings)
-2. City, State, ZIP
-3. Current listing price from Zillow/MLS
-4. Bedrooms and bathrooms
-5. Square footage
-6. Year built
-7. Zillow URL or listing URL if available
-8. Estimated ARV (After Repair Value) based on comparable sales
-9. Estimated rehab costs based on property condition
-10. Days on market
-11. Calculate a deal score (0-100) based on: price vs ARV, equity potential, motivated seller signals
-12. Calculate projected wholesale profit: (ARV * 0.70) - list_price - rehab_estimate - 20000
-
-IMPORTANT: Only return REAL properties with actual addresses currently listed for sale. Do not make up fake properties.`;
+      const searchQuery = `Find 8 distressed/wholesale real estate properties for sale ${searchScope}. Price: $${searchParams.minPrice.toLocaleString()}-$${searchParams.maxPrice.toLocaleString()}, ${searchParams.minBeds}+ beds, ${searchParams.propertyType}. For each: address, city, state, zip, list_price, bedrooms, bathrooms, square_feet, year_built, zillow_url, arv, rehab_estimate, deal_score (0-100), projected_profit=(arv*0.70-list_price-rehab_estimate-20000), days_on_market, distress_signals. Be concise.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: searchQuery,

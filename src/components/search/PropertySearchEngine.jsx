@@ -25,9 +25,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import InlineMAOPanel from "@/components/search/InlineMAOPanel";
+import InlineDealAnalysisPanel from "@/components/search/InlineDealAnalysisPanel";
 
 export default function PropertySearchEngine() {
   const navigate = useNavigate();
+  const [expandedPanel, setExpandedPanel] = useState(null); // { id, type: 'mao' | 'analyze' }
   const [searchParams, setSearchParams] = useState({
     location: "",
     state: "",
@@ -505,30 +508,37 @@ export default function PropertySearchEngine() {
                       </Button>
                       <Button
                         size="sm"
-                        className="flex-1 bg-slate-900 hover:bg-slate-800"
-                        onClick={() => navigate(`/dealanalysis?address=${encodeURIComponent(property.address)}&city=${encodeURIComponent(property.city)}&state=${encodeURIComponent(property.state)}&price=${property.list_price}&arv=${property.arv}`)}
+                        className={`flex-1 ${expandedPanel?.id === property.id && expandedPanel?.type === 'analyze' ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-800'}`}
+                        onClick={() => setExpandedPanel(
+                          expandedPanel?.id === property.id && expandedPanel?.type === 'analyze'
+                            ? null
+                            : { id: property.id, type: 'analyze' }
+                        )}
                       >
                         <TrendingUp className="w-4 h-4 mr-2" />
                         Analyze Deal
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                        onClick={() => {
-                          const params = new URLSearchParams({
-                            arv: property.arv || '',
-                            rehab: property.rehab_estimate || '',
-                            address: property.address || '',
-                            city: property.city || '',
-                            state: property.state || '',
-                          });
-                          navigate(`/smartmaocalculator?${params.toString()}`);
-                        }}
+                        className={`${expandedPanel?.id === property.id && expandedPanel?.type === 'mao' ? 'bg-yellow-600' : 'bg-yellow-500 hover:bg-yellow-600'} text-white`}
+                        onClick={() => setExpandedPanel(
+                          expandedPanel?.id === property.id && expandedPanel?.type === 'mao'
+                            ? null
+                            : { id: property.id, type: 'mao' }
+                        )}
                       >
                         <Calculator className="w-4 h-4 mr-2" />
                         MAO
                       </Button>
                     </div>
+
+                    {/* Inline Panels */}
+                    {expandedPanel?.id === property.id && expandedPanel?.type === 'mao' && (
+                      <InlineMAOPanel property={property} />
+                    )}
+                    {expandedPanel?.id === property.id && expandedPanel?.type === 'analyze' && (
+                      <InlineDealAnalysisPanel property={property} />
+                    )}
                   </motion.div>
                 ))}
               </AnimatePresence>

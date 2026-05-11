@@ -19,12 +19,26 @@ import { AnimatePresence, motion } from "framer-motion";
 const API_BASE_URL = "https://apex-deal-flow.onrender.com";
 
 const ALL_CRAIGSLIST_CITIES = [
-  "atlanta", "austin", "baltimore", "boston", "charlotte", "chicago", "cincinnati",
-  "cleveland", "columbus", "dallas", "denver", "detroit", "houston", "indianapolis",
-  "jacksonville", "kansascity", "lasvegas", "losangeles", "louisville", "memphis",
-  "miami", "milwaukee", "minneapolis", "nashville", "newyork", "orlando", "philadelphia",
-  "phoenix", "portland", "raleigh", "sacramento", "sanantonio", "sandiego", "seattle",
-  "sfbay", "stlouis", "tampa", "washingtondc"
+  "albuquerque", "anchorage", "annarbor", "appleton", "asheville", "atlanta", "austin",
+  "bakersfield", "baltimore", "batonrouge", "beaumont", "billings", "birmingham",
+  "boise", "boston", "boulder", "buffalo", "burlington",
+  "charleston", "charlotte", "chattanooga", "chicago", "cincinnati", "cleveland",
+  "coloradosprings", "columbia", "columbus", "corpuschristi",
+  "dallas", "dayton", "denver", "desmoines", "detroit", "duluth",
+  "elpaso", "eugene", "fayetteville", "fortcollins", "fortsmith", "fortwayne",
+  "fresno", "gainesville", "grandrapids", "greensboro", "greenville",
+  "hartford", "honolulu", "houston", "huntsville",
+  "indianapolis", "jackson", "jacksonville", "kansascity", "knoxville",
+  "lasvegas", "lexington", "lincoln", "littlerock", "losangeles", "louisville",
+  "lubbock", "madison", "mcallen", "memphis", "miami", "milwaukee", "minneapolis",
+  "mobile", "modesto", "nashville", "newjersey", "neworleans", "newyork",
+  "norfolk", "oklahomaCity", "omaha", "orlando",
+  "palmsprings", "pensacola", "philadelphia", "phoenix", "pittsburgh", "portland",
+  "providence", "raleigh", "reno", "richmond", "riverside", "rochester",
+  "sacramento", "saltlakecity", "sanantonio", "sandiego", "seattle", "sfbay",
+  "shreveport", "spokane", "springfield", "stlouis", "stockton", "syracuse",
+  "tallahassee", "tampa", "toledo", "topeka", "tucson", "tulsa",
+  "washingtondc", "wichita", "wilmington", "worcester", "youngstown"
 ];
 
 const formatCurrency = (amount) => {
@@ -35,7 +49,7 @@ const formatCurrency = (amount) => {
 // ── AI-powered Craigslist search via LLM ──────────────────────────────────────
 function AISearchPanel() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [city, setCity] = useState("tampa");
+  const [city, setCity] = useState("all");
   const [maxPrice, setMaxPrice] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState([]);
@@ -43,34 +57,39 @@ function AISearchPanel() {
   const { toast } = useToast();
 
   // Build a real Craigslist search URL for the selected city/query
-  const getCraigslistSearchUrl = () => {
+  const getCraigslistSearchUrl = (targetCity) => {
+    const c = targetCity || city;
     const params = new URLSearchParams();
     if (searchQuery) params.set("query", searchQuery);
     if (maxPrice) params.set("max_price", maxPrice);
-    return `https://${city}.craigslist.org/search/rea?${params.toString()}`;
+    if (c === "all") return `https://craigslist.org/search/rea?${params.toString()}`;
+    return `https://${c}.craigslist.org/search/rea?${params.toString()}`;
   };
 
   const handleAISearch = async () => {
     if (!searchQuery && !city) return;
     setIsSearching(true);
     setResults([]);
+    const isAllCities = city === "all";
     const searchUrl = getCraigslistSearchUrl();
+    const cityLabel = isAllCities ? "nationwide (various US cities)" : city;
     try {
-      const prompt = `You are a real estate deal sourcing AI. Generate 8-12 realistic Craigslist-style real estate listings that would appear on ${city}.craigslist.org for: "${searchQuery || "real estate for sale investor deals"}".
+      const prompt = `You are a real estate deal sourcing AI. Generate 10-15 realistic Craigslist-style real estate listings for: "${searchQuery || "real estate for sale investor deals"}".
+${isAllCities ? "Spread listings across diverse US cities (mix of large and mid-size markets)." : `Listings should be from ${city}.craigslist.org.`}
 
 Focus on distressed/motivated seller properties: foreclosures, fixer-uppers, estate sales, FSBO, absentee owners.
 ${maxPrice ? `Max price: $${maxPrice}` : ""}
 
-IMPORTANT: For the "url" field of each listing, use this Craigslist search results URL (the same for all listings): ${searchUrl}
+IMPORTANT: For the "url" field, use the appropriate Craigslist search URL for that city. Format: https://CITYNAME.craigslist.org/search/rea${searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : ""}
 
-Return a JSON array with realistic listings:
+Return JSON with realistic listings spread across ${cityLabel}:
 {
   "listings": [
     {
       "title": "3BR/2BA Fixer-Upper - Estate Sale, Must Sell Fast",
       "price": 125000,
-      "location": "${city.charAt(0).toUpperCase() + city.slice(1)}, FL",
-      "url": "${searchUrl}",
+      "location": "Tampa, FL",
+      "url": "https://tampa.craigslist.org/search/rea",
       "posted_days_ago": 2,
       "description": "Motivated seller, property needs some TLC. Great bones...",
       "beds": 3,
@@ -184,6 +203,7 @@ Return a JSON array with realistic listings:
                 onChange={e => setCity(e.target.value)}
                 className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
               >
+                <option value="all">🌎 All Cities (Nationwide)</option>
                 {ALL_CRAIGSLIST_CITIES.map(c => (
                   <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                 ))}
@@ -296,8 +316,8 @@ Return a JSON array with realistic listings:
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
                       <Button asChild variant="outline" size="sm">
-                        <a href={getCraigslistSearchUrl()} target="_blank" rel="noopener noreferrer">
-                          Search CL <ExternalLink className="w-3 h-3 ml-1" />
+                        <a href={listing.url || getCraigslistSearchUrl()} target="_blank" rel="noopener noreferrer">
+                          View on CL <ExternalLink className="w-3 h-3 ml-1" />
                         </a>
                       </Button>
                       <Button

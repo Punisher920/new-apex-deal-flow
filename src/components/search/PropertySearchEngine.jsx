@@ -37,7 +37,7 @@ export default function PropertySearchEngine() {
     minBaths: 1,
     propertyType: "Single Family",
     maxDaysOnMarket: 180,
-    minDealScore: 70
+    minDealScore: 50
   });
 
   const [searchResults, setSearchResults] = useState([]);
@@ -95,6 +95,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: searchQuery,
         add_context_from_internet: true,
+        model: "gemini_3_flash",
         response_json_schema: {
           type: "object",
           properties: {
@@ -288,7 +289,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                     value={[searchParams.minDealScore]}
                     onValueChange={(value) => handleParamChange('minDealScore', value[0])}
                     max={100}
-                    min={50}
+                    min={30}
                     step={5}
                     className="mt-2"
                   />

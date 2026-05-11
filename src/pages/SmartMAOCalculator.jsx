@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Property, MAOCalculation, LeadSource, User } from "@/entities/all";
-import { InvokeLLM } from "@/integrations/Core";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +79,7 @@ export default function SmartMAOCalculator() {
     setSelectedProperty(property);
     
     try {
-      const leadSources = await LeadSource.filter({ property_id: property.id });
+      const leadSources = await base44.entities.LeadSource.filter({ property_id: property.id });
       setLeadSource(leadSources[0] || null);
     } catch (error) {
       console.error("Error loading lead source:", error);
@@ -100,8 +99,8 @@ export default function SmartMAOCalculator() {
   const loadData = useCallback(async () => {
     try {
       const [propsData, userData] = await Promise.all([
-        Property.list("-created_date", 50),
-        User.me().catch(() => null)
+        base44.entities.Property.list("-created_date", 50),
+        base44.auth.me().catch(() => null)
       ]);
       
       setProperties(propsData);
@@ -122,12 +121,32 @@ export default function SmartMAOCalculator() {
 
   useEffect(() => {
     loadData();
+    // Pre-fill from URL params (when navigated from Property Search)
+    const urlParams = new URLSearchParams(window.location.search);
+    const arv = parseFloat(urlParams.get('arv'));
+    const rehab = parseFloat(urlParams.get('rehab'));
+    const address = urlParams.get('address');
+    if (arv > 0 || address) {
+      const syntheticProperty = {
+        id: 'url-param',
+        address: address || 'Search Result Property',
+        city: urlParams.get('city') || '',
+        state: urlParams.get('state') || '',
+        building_sqft: 1500,
+      };
+      setSelectedProperty(syntheticProperty);
+      setInputs(prev => ({
+        ...prev,
+        arv: arv || prev.arv,
+        manualRepairsOverride: rehab || '',
+      }));
+    }
   }, [loadData]);
 
   const generateAIEstimates = async (property) => {
     setIsCalculating(true);
     try {
-      const estimates = await InvokeLLM({
+      const estimates = await base44.integrations.Core.InvokeLLM({
         prompt: `You are a specialized Real Estate Wholesaling AI Analyst. Analyze THIS specific property: ${property.address}, ${property.city}, ${property.state} ${property.zip || ''}.
         
         Use live comp data to determine:
@@ -136,6 +155,7 @@ export default function SmartMAOCalculator() {
         
         Return your analysis for THIS property only — do not analyze a different property.`,
         add_context_from_internet: true,
+        model: "gemini_3_flash",
         response_json_schema: {
           type: "object",
           properties: {
@@ -151,7 +171,7 @@ export default function SmartMAOCalculator() {
           arv: estimates.arv_estimate,
           manualRepairsOverride: estimates.rehab_estimate || '',
         }));
-        await Property.update(property.id, {
+        await base44.entities.Property.update(property.id, {
           arv: estimates.arv_estimate,
           rehab_estimate: estimates.rehab_estimate
         });

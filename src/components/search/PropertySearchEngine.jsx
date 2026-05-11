@@ -20,11 +20,14 @@ import {
   DollarSign,
   TrendingUp,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Calculator
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PropertySearchEngine() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState({
     location: "",
     state: "",
@@ -517,12 +520,21 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                           </a>
                         </Button>
                       )}
-                      <Button size="sm" className="flex-1 bg-slate-900 hover:bg-slate-800">
-                        <TrendingUp className="w-4 h-4 mr-2" />
-                        Analyze Deal
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <DollarSign className="w-4 h-4 mr-2" />
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-slate-900 hover:bg-slate-800"
+                        onClick={() => {
+                          const params = new URLSearchParams({
+                            arv: property.arv || '',
+                            rehab: property.rehab_estimate || '',
+                            address: property.address || '',
+                            city: property.city || '',
+                            state: property.state || '',
+                          });
+                          navigate(`/smartmaocalculator?${params.toString()}`);
+                        }}
+                      >
+                        <Calculator className="w-4 h-4 mr-2" />
                         Calculate MAO
                       </Button>
                     </div>

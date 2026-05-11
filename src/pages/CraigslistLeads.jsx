@@ -42,15 +42,26 @@ function AISearchPanel() {
   const [filterText, setFilterText] = useState("");
   const { toast } = useToast();
 
+  // Build a real Craigslist search URL for the selected city/query
+  const getCraigslistSearchUrl = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("query", searchQuery);
+    if (maxPrice) params.set("max_price", maxPrice);
+    return `https://${city}.craigslist.org/search/rea?${params.toString()}`;
+  };
+
   const handleAISearch = async () => {
     if (!searchQuery && !city) return;
     setIsSearching(true);
     setResults([]);
+    const searchUrl = getCraigslistSearchUrl();
     try {
       const prompt = `You are a real estate deal sourcing AI. Generate 8-12 realistic Craigslist-style real estate listings that would appear on ${city}.craigslist.org for: "${searchQuery || "real estate for sale investor deals"}".
 
 Focus on distressed/motivated seller properties: foreclosures, fixer-uppers, estate sales, FSBO, absentee owners.
 ${maxPrice ? `Max price: $${maxPrice}` : ""}
+
+IMPORTANT: For the "url" field of each listing, use this Craigslist search results URL (the same for all listings): ${searchUrl}
 
 Return a JSON array with realistic listings:
 {
@@ -58,8 +69,8 @@ Return a JSON array with realistic listings:
     {
       "title": "3BR/2BA Fixer-Upper - Estate Sale, Must Sell Fast",
       "price": 125000,
-      "location": "Tampa, FL",
-      "url": "https://${city}.craigslist.org/reo/d/example/1234567890.html",
+      "location": "${city.charAt(0).toUpperCase() + city.slice(1)}, FL",
+      "url": "${searchUrl}",
       "posted_days_ago": 2,
       "description": "Motivated seller, property needs some TLC. Great bones...",
       "beds": 3,
@@ -285,8 +296,8 @@ Return a JSON array with realistic listings:
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
                       <Button asChild variant="outline" size="sm">
-                        <a href={listing.url} target="_blank" rel="noopener noreferrer">
-                          View <ExternalLink className="w-3 h-3 ml-1" />
+                        <a href={getCraigslistSearchUrl()} target="_blank" rel="noopener noreferrer">
+                          Search CL <ExternalLink className="w-3 h-3 ml-1" />
                         </a>
                       </Button>
                       <Button

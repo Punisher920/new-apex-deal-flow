@@ -8,41 +8,55 @@ Deno.serve(async (req) => {
 
     const { criteria } = await req.json();
 
-    const prompt = `You are a real estate investment deal sourcing AI. Based on the following investor criteria, generate 5-8 realistic off-market property leads that would match this investor's needs. These should represent properties sourced from public records, FSBO listings, Craigslist, and pre-foreclosure data.
+    const locations = criteria?.target_locations?.length
+      ? criteria.target_locations
+      : ["Nationwide USA"];
+    const isNationwide = locations.includes("Nationwide") || locations.includes("Nationwide USA");
+
+    const locationInstruction = isNationwide
+      ? "Spread leads across diverse US markets — include properties from at least 5 different states covering Southeast, Midwest, Southwest, Northeast, and South regions."
+      : `Target these specific locations: ${locations.join(", ")}.`;
+
+    const prompt = `You are a real estate deal sourcing AI. Generate 8-12 realistic off-market distressed property leads based on this investor profile.
 
 Investor Criteria:
-${JSON.stringify(criteria, null, 2)}
+- Investment focus: ${criteria?.investment_focus || "Wholesale"}
+- Max price: $${criteria?.max_price || 300000}
+- Min bedrooms: ${criteria?.min_beds || 3}
+- Property types: ${(criteria?.property_types || ["Single Family"]).join(", ")}
 
-For each property, generate realistic data including:
-- A real-sounding address in a relevant market
-- Property details (beds, baths, sqft, year built)
-- Assessed value and estimated last sale price
-- A motivation score (0-100) based on distress indicators
-- Source type (FSBO, Pre-Foreclosure, Probate, Absentee Owner, Tax Lien, Expired Listing)
-- Key motivation factors
+Location instructions: ${locationInstruction}
 
-Return a JSON array with this structure:
+For each lead, generate realistic and internally consistent data:
+- The assessed_value should be realistic for the market (use real comps in your knowledge)
+- The last_sale_price should be lower than assessed_value to show equity opportunity
+- The motivation_score (0-100) should be driven by the distress signals you assign
+- Assign source_type and motivation_factors that align logically (e.g. Probate → "Inherited Property")
+- Mix lead temperatures: some Hot (80+), some Warm (65-79), some Qualified (50-64)
+- Use realistic US street addresses with correct ZIP codes for the city/state
+
+Return JSON with this exact structure:
 {
   "leads": [
     {
-      "address": "123 Main St",
-      "city": "Tampa",
-      "state": "FL",
-      "zip": "33601",
+      "address": "742 Evergreen Terrace",
+      "city": "Memphis",
+      "state": "TN",
+      "zip": "38103",
       "beds": 3,
       "baths": 2,
-      "building_sqft": 1450,
-      "year_built": 1978,
-      "assessed_value": 185000,
-      "last_sale_price": 142000,
-      "last_sale_date": "2019-03-15",
-      "motivation_score": 82,
+      "building_sqft": 1380,
+      "year_built": 1975,
+      "assessed_value": 148000,
+      "last_sale_price": 98000,
+      "last_sale_date": "2017-06-12",
+      "motivation_score": 84,
       "source_type": "Pre-Foreclosure",
       "motivation_factors": ["Financial Distress", "Time Pressure"],
       "lead_temperature": "Hot",
       "absentee_owner": true,
-      "owner_name": "John Smith",
-      "notes": "Property has been vacant 8 months, owner relocated out of state"
+      "owner_name": "James R. Howard",
+      "notes": "Property vacant 10 months. Owner relocated to Georgia. Foreclosure auction scheduled in 60 days."
     }
   ]
 }`;
@@ -112,11 +126,19 @@ Return a JSON array with this structure:
         mailing_address: lead.absentee_owner ? "Out of state" : lead.address
       });
 
+      const equityEstimate = lead.assessed_value && lead.last_sale_price
+        ? Math.round(((lead.assessed_value - lead.last_sale_price) / lead.assessed_value) * 100)
+        : 0;
+
       await base44.entities.Score.create({
         parcel_id,
         motivation_score: lead.motivation_score,
-        equity_estimate: Math.round(((lead.assessed_value - lead.last_sale_price) / lead.assessed_value) * 100) || 0,
-        flags: lead.absentee_owner ? ["absentee"] : []
+        equity_estimate: Math.max(0, equityEstimate),
+        flags: [
+          ...(lead.absentee_owner ? ["absentee"] : []),
+          ...(lead.motivation_score >= 80 ? [] : []),
+          ...(equityEstimate >= 30 ? [] : ["equity_low"])
+        ]
       });
 
       await base44.entities.LeadSource.create({

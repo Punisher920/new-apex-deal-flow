@@ -73,7 +73,7 @@ export default function PropertySearchEngine() {
 
     try {
       const searchScope = location === "Nationwide USA" ? "across the United States (spread across multiple states and regions)" : `in ${location}`;
-      const searchQuery = `Find 8 distressed/wholesale real estate properties for sale ${searchScope}. Price: $${searchParams.minPrice.toLocaleString()}-$${searchParams.maxPrice.toLocaleString()}, ${searchParams.minBeds}+ beds, ${searchParams.propertyType}. For each: address, city, state, zip, list_price, bedrooms, bathrooms, square_feet, year_built, zillow_url, arv, rehab_estimate, deal_score (0-100), projected_profit=(arv*0.70-list_price-rehab_estimate-20000), days_on_market, distress_signals. Be concise.`;
+      const searchQuery = `Find 8 distressed/wholesale real estate properties for sale ${searchScope}. Price: $${searchParams.minPrice.toLocaleString()}-$${searchParams.maxPrice.toLocaleString()}, ${searchParams.minBeds}+ beds, ${searchParams.propertyType}. For each: address, city, state, zip_code, list_price, bedrooms, bathrooms, square_feet, year_built, arv, rehab_estimate, deal_score (0-100), projected_profit=(arv*0.70-list_price-rehab_estimate-20000), days_on_market, distress_signals. Be concise.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: searchQuery,
@@ -96,7 +96,6 @@ export default function PropertySearchEngine() {
                   bathrooms: { type: "number" },
                   square_feet: { type: "number" },
                   year_built: { type: "number" },
-                  zillow_url: { type: "string" },
                   arv: { type: "number" },
                   rehab_estimate: { type: "number" },
                   deal_score: { type: "number" },
@@ -494,11 +493,7 @@ export default function PropertySearchEngine() {
                     <div className="flex gap-3">
                       <Button size="sm" variant="outline" asChild>
                         <a
-                          href={
-                            property.zillow_url && property.zillow_url.startsWith('http')
-                              ? property.zillow_url
-                              : `https://www.zillow.com/homes/${encodeURIComponent(`${property.address}, ${property.city}, ${property.state}`)}_rb/`
-                          }
+                          href={`https://www.zillow.com/homes/for_sale/${encodeURIComponent(`${property.address}, ${property.city}, ${property.state} ${property.zip_code}`.trim())}/`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >

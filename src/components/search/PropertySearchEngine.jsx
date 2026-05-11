@@ -429,7 +429,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
               </div>
               <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
                 <DollarSign className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-purple-900">${searchStats.avgProfit}K</p>
+                <p className="text-2xl font-bold text-purple-900">${(Number(searchStats.avgProfit) / 1000).toFixed(1)}K</p>
                 <p className="text-sm text-purple-700">Avg Profit</p>
               </div>
             </div>
@@ -512,17 +512,31 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                     )}
 
                     <div className="flex gap-3">
-                      {property.zillow_url && (
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={property.zillow_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            View on Zillow
-                          </a>
-                        </Button>
-                      )}
+                      <Button size="sm" variant="outline" asChild>
+                        <a
+                          href={
+                            property.zillow_url && property.zillow_url.startsWith('http')
+                              ? property.zillow_url
+                              : `https://www.zillow.com/homes/${encodeURIComponent(`${property.address}, ${property.city}, ${property.state}`)}_rb/`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          View on Zillow
+                        </a>
+                      </Button>
                       <Button
                         size="sm"
                         className="flex-1 bg-slate-900 hover:bg-slate-800"
+                        onClick={() => navigate(`/dealanalysis?address=${encodeURIComponent(property.address)}&city=${encodeURIComponent(property.city)}&state=${encodeURIComponent(property.state)}&price=${property.list_price}&arv=${property.arv}`)}
+                      >
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Analyze Deal
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
                         onClick={() => {
                           const params = new URLSearchParams({
                             arv: property.arv || '',
@@ -535,7 +549,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                         }}
                       >
                         <Calculator className="w-4 h-4 mr-2" />
-                        Calculate MAO
+                        MAO
                       </Button>
                     </div>
                   </motion.div>

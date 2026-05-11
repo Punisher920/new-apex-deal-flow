@@ -101,13 +101,16 @@ Example: "find flips in Tampa under 300k" -> { "city": "Tampa", "maxPrice": 3000
     const matchesSearch = !q ||
       property.address?.toLowerCase().includes(q) ||
       property.city?.toLowerCase().includes(q) ||
+      property.state?.toLowerCase().includes(q) ||
+      property.zip?.toLowerCase().includes(q) ||
       (nlSearchResult?.city && property.city?.toLowerCase().includes(nlSearchResult.city.toLowerCase()));
-    const matchesScore = property.deal_score >= filters.minDealScore;
-    const matchesPrice = property.list_price <= filters.maxPrice;
-    const matchesProfit = property.projected_profit >= filters.minProfit;
+    const matchesScore = !property.deal_score || property.deal_score >= filters.minDealScore;
+    const matchesPrice = !property.list_price || property.list_price <= filters.maxPrice;
+    const matchesProfit = !property.projected_profit || property.projected_profit >= filters.minProfit;
     const matchesType = filters.propertyType === "all" || property.property_type === filters.propertyType;
+    const matchesLocation = filters.location === "all" || property.state === filters.location;
     
-    return matchesSearch && matchesScore && matchesPrice && matchesProfit && matchesType;
+    return matchesSearch && matchesScore && matchesPrice && matchesProfit && matchesType && matchesLocation;
   });
 
   const highScoreDeals = filteredProperties.filter(p => p.deal_score >= 80);
@@ -132,7 +135,7 @@ Example: "find flips in Tampa under 300k" -> { "city": "Tampa", "maxPrice": 3000
               <div className="relative flex-1 lg:w-96">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
-                  placeholder='Search or ask: "Find flips in Tampa under $300K"'
+                  placeholder='Search or ask: "Find flips in any city under $300K"'
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -275,12 +278,12 @@ Example: "find flips in Tampa under 300k" -> { "city": "Tampa", "maxPrice": 3000
                 <CardContent>
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
-                      <h4 className="font-semibold text-blue-900 mb-2">Hot Markets</h4>
-                      <p className="text-sm text-blue-700">Nashville, TN showing 23% increase in wholesale opportunities</p>
+                      <h4 className="font-semibold text-blue-900 mb-2">🌎 Nationwide Search Active</h4>
+                      <p className="text-sm text-blue-700">Search properties across all 50 states — filter by state in the panel</p>
                     </div>
                     <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
                       <h4 className="font-semibold text-amber-900 mb-2">Price Trends</h4>
-                      <p className="text-sm text-amber-700">Average deal profit up 15% this month</p>
+                      <p className="text-sm text-amber-700">Use AI search to discover top deals in any US market</p>
                     </div>
                   </div>
                 </CardContent>

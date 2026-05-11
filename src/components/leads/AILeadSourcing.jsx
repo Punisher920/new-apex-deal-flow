@@ -22,7 +22,7 @@ export default function AILeadSourcing({ onLeadsCreated }) {
     try {
       const user = await base44.auth.me();
       criteria = user?.investment_criteria || {
-        target_locations: ["Tampa, FL", "Orlando, FL"],
+        target_locations: ["Nationwide"],
         max_price: 300000,
         min_beds: 3,
         investment_focus: "Wholesale",

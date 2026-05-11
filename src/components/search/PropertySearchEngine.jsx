@@ -59,24 +59,22 @@ export default function PropertySearchEngine() {
   ];
 
   const runPropertySearch = async () => {
-    const location = searchParams.location || searchParams.city || searchParams.state;
-    if (!location) {
-      setSearchError("Please enter a location to search.");
-      return;
-    }
+    const location = searchParams.location || searchParams.city || searchParams.state || "Nationwide USA";
 
     setIsSearching(true);
     setSearchResults([]);
     setSearchError(null);
 
     try {
-      const searchQuery = `Search Zillow, Realtor.com, Redfin, and real estate listing sites to find 10-15 REAL properties currently for sale in ${location}. 
+      const searchScope = location === "Nationwide USA" ? "across the United States (spread across multiple states and regions)" : `in ${location}`;
+      const searchQuery = `Search Zillow, Realtor.com, Redfin, and real estate listing sites to find 10-15 REAL properties currently for sale ${searchScope}. 
 
 REQUIREMENTS:
 - Price range: $${searchParams.minPrice.toLocaleString()} - $${searchParams.maxPrice.toLocaleString()}
 - Bedrooms: ${searchParams.minBeds}-${searchParams.maxBeds}
 - Property type: ${searchParams.propertyType}
 - Focus on: distressed properties, foreclosures, motivated sellers, fixer-uppers, and wholesale opportunities
+${location === "Nationwide USA" ? "- Include properties from diverse markets: Southeast, Midwest, Southwest, Northeast, and South" : ""}
 
 For each property found, provide:
 1. Full street address (real addresses from current listings)
@@ -208,7 +206,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
             <Search className="w-5 h-5 text-blue-500" />
             Zillow Property Search
           </CardTitle>
-          <p className="text-slate-600">Search real Zillow listings for wholesale deals across all 50 states</p>
+          <p className="text-slate-600">Search nationwide or filter by state, city, or ZIP for wholesale deals</p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Location Search */}
@@ -230,7 +228,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                   <SelectValue placeholder="Select State" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>All States</SelectItem>
+                  <SelectItem value="all">🌎 All States (Nationwide)</SelectItem>
                   {states.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}

@@ -102,21 +102,20 @@ export default function FilterPanel({ filters, onChange }) {
 
         <div>
           <Label className="text-sm font-medium text-slate-700 mb-3 block">
-            Location
+            State
           </Label>
           <Select 
             value={filters.location} 
             onValueChange={(value) => handleFilterChange('location', value)}
           >
             <SelectTrigger className="bg-white/80">
-              <SelectValue placeholder="All Locations" />
+              <SelectValue placeholder="All States" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              <SelectItem value="nashville">Nashville, TN</SelectItem>
-              <SelectItem value="memphis">Memphis, TN</SelectItem>
-              <SelectItem value="knoxville">Knoxville, TN</SelectItem>
-              <SelectItem value="chattanooga">Chattanooga, TN</SelectItem>
+              <SelectItem value="all">🌎 All States (Nationwide)</SelectItem>
+              {["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"].map(s => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

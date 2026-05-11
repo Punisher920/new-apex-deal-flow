@@ -11,12 +11,15 @@ import {
   DollarSign,
   Database,
   ClipboardList,
-  Target, // Added Target icon for Leads Pipeline
-  MessageCircle, // Added MessageCircle icon for Outreach Status
-  Calculator, // Added Calculator icon for Smart MAO Calculator
-  BarChart3, // Re-added BarChart3 for Comparable Analysis
-  Newspaper, // Added icon for Craigslist Leads
-  Bot // Added icon for Agent Chat
+  Target,
+  MessageCircle,
+  Calculator,
+  BarChart3,
+  PieChart,
+  Newspaper,
+  Bot,
+  Stethoscope,
+  Activity
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +37,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
+import { useEffect, useState } from "react";
 
 const navigationItems = [
   {
@@ -74,12 +79,12 @@ const navigationItems = [
   {
     title: "Analytics",
     url: createPageUrl("Analytics"),
-    icon: BarChart3,
+    icon: PieChart,
   },
   {
     title: "Agent Diagnostics",
     url: createPageUrl("AgentDiagnostics"),
-    icon: Settings,
+    icon: Stethoscope,
   },
   {
     title: "Outreach Status",
@@ -120,6 +125,23 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const [sidebarStats, setSidebarStats] = useState({ activeDeals: 0, dataSources: 0, avgProfit: 0 });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const [properties, dataSources] = await Promise.all([
+          base44.entities.Property.list('-created_date', 200).catch(() => []),
+          base44.entities.DataSource.filter({ status: 'Active' }).catch(() => [])
+        ]);
+        const activeDeals = properties.filter(p => p.status === 'Active Lead' || p.status === 'Under Review').length;
+        const profits = properties.filter(p => p.projected_profit > 0).map(p => p.projected_profit);
+        const avgProfit = profits.length > 0 ? Math.round(profits.reduce((a, b) => a + b, 0) / profits.length) : 0;
+        setSidebarStats({ activeDeals, dataSources: dataSources.length, avgProfit });
+      } catch { /* silent */ }
+    };
+    loadStats();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -209,8 +231,8 @@ export default function Layout({ children, currentPageName }) {
                         Live
                       </Badge>
                     </div>
-                    <p className="text-2xl font-bold text-white">24</p>
-                    <p className="text-xs text-slate-400">+12% this week</p>
+                    <p className="text-2xl font-bold text-white">{sidebarStats.activeDeals}</p>
+                    <p className="text-xs text-slate-400">Active leads</p>
                   </div>
                   
                   <div className="glass-effect rounded-xl p-4 border border-slate-600/30">
@@ -218,8 +240,8 @@ export default function Layout({ children, currentPageName }) {
                       <span className="text-sm text-slate-300">Data Sources</span>
                       <Database className="w-4 h-4 text-blue-400" />
                     </div>
-                    <p className="text-2xl font-bold text-white">4</p>
-                    <p className="text-xs text-slate-400">All connected</p>
+                    <p className="text-2xl font-bold text-white">{sidebarStats.dataSources}</p>
+                    <p className="text-xs text-slate-400">Connected</p>
                   </div>
                   
                   <div className="glass-effect rounded-xl p-4 border border-slate-600/30">
@@ -227,7 +249,9 @@ export default function Layout({ children, currentPageName }) {
                       <span className="text-sm text-slate-300">Avg Profit</span>
                       <DollarSign className="w-4 h-4 text-amber-400" />
                     </div>
-                    <p className="text-2xl font-bold text-white">$15.2K</p>
+                    <p className="text-2xl font-bold text-white">
+                      {sidebarStats.avgProfit > 0 ? `$${(sidebarStats.avgProfit / 1000).toFixed(1)}K` : '—'}
+                    </p>
                     <p className="text-xs text-slate-400">Per deal</p>
                   </div>
                 </div>

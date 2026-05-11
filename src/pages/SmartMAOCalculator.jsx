@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Property, MAOCalculation, LeadSource, User } from "@/entities/all";
 import { InvokeLLM } from "@/integrations/Core";
@@ -129,15 +128,13 @@ export default function SmartMAOCalculator() {
     setIsCalculating(true);
     try {
       const estimates = await InvokeLLM({
-        prompt: `You are a specialized Real Estate Wholesaling AI Analyst. Find a highly-qualified wholesale property lead similar to this property: ${property.address}, ${property.city}, ${property.state}.
+        prompt: `You are a specialized Real Estate Wholesaling AI Analyst. Analyze THIS specific property: ${property.address}, ${property.city}, ${property.state} ${property.zip || ''}.
         
-        Analyze it using this formula: MAO = (ARV * 70%) - Estimated Rehab Costs - Desired Wholesale Fee.
+        Use live comp data to determine:
+        1. ARV (After Repair Value): Find 3-5 recently sold renovated comps within 0.5 miles and similar sqft.
+        2. Rehab estimate: Based on the property's age (${property.year_built || 'unknown'}), condition signals, and size (~${property.building_sqft || 1500} sqft).
         
-        - Find 3-5 renovated comps to get the ARV.
-        - Estimate rehab costs using a tiered approach (Light/Medium/Heavy).
-        - Use a desired wholesale fee of ${inputs.wholesaleFee}.
-        
-        Return the analysis for the new lead you found.`,
+        Return your analysis for THIS property only — do not analyze a different property.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
@@ -171,7 +168,7 @@ export default function SmartMAOCalculator() {
     const { arv, rehabLevel, manualRepairsOverride, wholesaleFee } = inputs;
     const { closingCostsBuyPct, doubleCloseExtraPct, offerPctOfArv } = userCriteria;
 
-    const rehabSizeCategory = getRehabSizeCategory(selectedProperty.square_feet);
+    const rehabSizeCategory = getRehabSizeCategory(selectedProperty.building_sqft || selectedProperty.square_feet || 0);
     const autoRepairs = rehabEstimates[rehabLevel][rehabSizeCategory] || 0;
     const effectiveRepairs = parseFloat(manualRepairsOverride) || autoRepairs;
     
@@ -195,10 +192,10 @@ export default function SmartMAOCalculator() {
       autoRepairs,
       effectiveRepairs,
       offerTiers: {
-        '40k': calculateMaoForFee(40000),
-        '30k': calculateMaoForFee(30000),
-        '20k': calculateMaoForFee(20000),
-        '10k': calculateMaoForFee(10000),
+        40000: calculateMaoForFee(40000),
+        30000: calculateMaoForFee(30000),
+        20000: calculateMaoForFee(20000),
+        10000: calculateMaoForFee(10000),
       }
     };
   }, [inputs, selectedProperty, userCriteria]);
@@ -328,7 +325,7 @@ export default function SmartMAOCalculator() {
                         <div className="space-y-2">
                            {Object.entries(calculations.offerTiers).reverse().map(([fee, offer]) => (
                                <div key={fee} className="flex justify-between items-center p-2 bg-slate-50 rounded-md">
-                                  <p className="text-sm text-slate-700">{formatCurrency(parseInt(fee, 10) * 1000)} Fee</p>
+                                  <p className="text-sm text-slate-700">{formatCurrency(Number(fee))} Fee</p>
                                   <p className="font-medium text-emerald-700">{formatCurrency(offer)}</p>
                               </div>
                           ))}

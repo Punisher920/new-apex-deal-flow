@@ -193,11 +193,11 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
       <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
         <Home className="h-4 w-4 text-blue-600" />
         <AlertTitle className="text-blue-900 flex items-center gap-2">
-          Zillow + Real Estate Data Connected
-          <Badge className="bg-emerald-500 text-white text-xs">Live</Badge>
+          AI-Powered Property Research
+          <Badge className="bg-blue-500 text-white text-xs">AI Search</Badge>
         </AlertTitle>
         <AlertDescription className="text-blue-700">
-          Searching Zillow, Realtor.com, Redfin, and MLS listings in real-time via AI web search.
+          Uses AI web search to find real estate listings and investment opportunities. Results are AI-generated estimates — always verify with your own research.
         </AlertDescription>
       </Alert>
 
@@ -445,7 +445,7 @@ IMPORTANT: Only return REAL properties with actual addresses currently listed fo
                 Found Properties ({searchResults.length})
               </span>
               <Badge className="bg-blue-100 text-blue-800">
-                Powered by Zillow AI Search
+                AI-Powered Research
               </Badge>
             </CardTitle>
           </CardHeader>

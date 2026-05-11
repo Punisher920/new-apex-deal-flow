@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.27';
 
 Deno.serve(async (req) => {
   try {
@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { endpoint = '/deals', search = '', filters = {} } = body;
+    const { endpoint = '/leads', search = '', filters = {} } = body;
 
     const url = new URL(endpoint, apiUrl);
     if (search) url.searchParams.set('q', search);

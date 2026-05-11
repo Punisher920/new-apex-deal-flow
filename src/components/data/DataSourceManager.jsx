@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DataSource, SyncJob } from "@/entities/all";
 import { InvokeLLM } from "@/integrations/Core";
@@ -184,16 +183,31 @@ export default function DataSourceManager() {
   };
 
   const fetchLiveMarketData = async () => {
+    const allMetros = [
+      "Atlanta, GA", "Phoenix, AZ", "Dallas, TX", "Houston, TX", "Tampa, FL",
+      "Orlando, FL", "Jacksonville, FL", "Charlotte, NC", "Raleigh, NC", "Memphis, TN",
+      "Nashville, TN", "Columbus, OH", "Indianapolis, IN", "Kansas City, MO", "St. Louis, MO",
+      "Detroit, MI", "Cleveland, OH", "Cincinnati, OH", "Louisville, KY", "Birmingham, AL",
+      "Oklahoma City, OK", "Tulsa, OK", "San Antonio, TX", "Austin, TX", "El Paso, TX",
+      "Denver, CO", "Las Vegas, NV", "Albuquerque, NM", "Tucson, AZ", "Salt Lake City, UT",
+      "Richmond, VA", "Baltimore, MD", "Pittsburgh, PA", "Buffalo, NY", "Rochester, NY",
+      "Milwaukee, WI", "Minneapolis, MN", "Omaha, NE", "Wichita, KS", "Little Rock, AR",
+      "Jackson, MS", "Baton Rouge, LA"
+    ];
+    // Sample 6 random metros each time for variety
+    const shuffled = allMetros.sort(() => Math.random() - 0.5).slice(0, 6);
+    const cityList = shuffled.join(", ");
+
     try {
       const response = await InvokeLLM({
-        prompt: `Generate current real estate market data for Nashville, Memphis, Knoxville, and Chattanooga TN including:
+        prompt: `Generate current real estate market data for these 6 US metros: ${cityList}. For each city include:
         - Average days on market
-        - Price trends (% change)
-        - Inventory levels
-        - New listings count
+        - Price trends (% change over last 3 months)
+        - Inventory levels (low/medium/high)
+        - New listings count (approximate)
         - Market temperature (hot/warm/cold)
-        - Investment opportunities score
-        Return as structured data for display in a real estate dashboard.`,
+        - Investment opportunity score (0-100)
+        Return as structured data for display in a nationwide real estate investment dashboard.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",

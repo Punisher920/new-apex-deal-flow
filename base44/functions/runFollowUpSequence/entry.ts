@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.27';
 
 Deno.serve(async (req) => {
   try {
@@ -50,11 +50,11 @@ Deno.serve(async (req) => {
           status: "Sent"
         });
 
-        if (contactMethod === "Email") {
+        if (contactMethod === "Email" && ownerData.email) {
           await base44.integrations.Core.SendEmail({
-            to: user.email,
-            subject: `[DealFinder] Follow-up sent to ${ownerData.owner_name} - ${property.address}`,
-            body: `A follow-up ${contactMethod} was automatically sent to ${ownerData.owner_name} for ${property.address}.\n\nMessage:\n${message}`
+            to: ownerData.email,
+            subject: `Cash Offer Inquiry - ${property.address}`,
+            body: message
           });
         }
 
@@ -69,9 +69,12 @@ Deno.serve(async (req) => {
 
       for (const buyer of buyers) {
         const matchingProps = properties.filter(p => {
-          const priceOk = (!buyer.min_price || p.assessed_value >= buyer.min_price) &&
-                         (!buyer.max_price || p.assessed_value <= buyer.max_price);
-          return priceOk;
+          const price = p.list_price || p.assessed_value || 0;
+          const priceOk = (!buyer.min_price || price >= buyer.min_price) &&
+                         (!buyer.max_price || price <= buyer.max_price);
+          const locationOk = !buyer.target_states?.length ||
+            buyer.target_states.some(s => s.toLowerCase() === p.state?.toLowerCase());
+          return priceOk && locationOk;
         }).slice(0, 3);
 
         if (matchingProps.length === 0) { results.skipped.push(buyer.id); continue; }

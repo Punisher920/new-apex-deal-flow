@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.27';
 
 Deno.serve(async (req) => {
   try {
@@ -100,8 +100,10 @@ Deno.serve(async (req) => {
       const month = d.toLocaleString('default', { month: 'short', year: '2-digit' });
       const monthStart = d.toISOString();
       const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString();
-      const leadsAdded = properties.filter(p => p.created_date >= monthStart && p.created_date <= monthEnd).length;
-      const outreachSent = outreachLogs.filter(l => l.contact_date >= monthStart && l.contact_date <= monthEnd).length;
+      const mStart = new Date(monthStart).getTime();
+      const mEnd = new Date(monthEnd).getTime();
+      const leadsAdded = properties.filter(p => { const t = new Date(p.created_date).getTime(); return t >= mStart && t <= mEnd; }).length;
+      const outreachSent = outreachLogs.filter(l => { const t = new Date(l.contact_date).getTime(); return t >= mStart && t <= mEnd; }).length;
       monthlyTrend.push({ month, leadsAdded, outreachSent });
     }
 
